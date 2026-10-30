@@ -9,6 +9,7 @@ WORKDIR $INSTALL_PATH
 ADD lib/inferno_template/version.rb $INSTALL_PATH/lib/inferno_template/version.rb
 ADD *.gemspec $INSTALL_PATH
 ADD Gemfile* $INSTALL_PATH
+ADD testscript-eval-ruby $INSTALL_PATH/testscript-eval-ruby
 RUN gem install bundler
 # The below RUN line is commented out for development purposes, because any change to the
 # required gems will break the dockerfile build process.

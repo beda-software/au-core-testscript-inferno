@@ -43,6 +43,8 @@ jobs:
     steps:
       - name: Checkout Inferno
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: No execution scripts found
         if: matrix.config == '__none__'

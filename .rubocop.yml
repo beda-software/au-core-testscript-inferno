@@ -8,6 +8,7 @@ AllCops:
   Exclude:
     - 'Gemfile'
     - 'vendor/**/*'
+    - 'testscript-eval-ruby/**/*'
 
 Layout/LineLength:
   Max: 120

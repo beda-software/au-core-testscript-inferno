@@ -4,6 +4,8 @@ source "https://rubygems.org"
 
 gemspec
 
+gem 'testscript_eval', path: 'testscript-eval-ruby'
+
 group :development, :test do
   gem 'debug'
   gem 'rubocop', '~> 1.9'
