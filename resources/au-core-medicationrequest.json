@@ -1,0 +1,419 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-medicationrequest",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-medicationrequest",
+  "name": "AUCoreMedicationRequest",
+  "title": "AU Core MedicationRequest \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core MedicationRequest (2.0.0) requirements: read, search by _id, authoredon, intent, status and patient, a search demonstrating the _include=MedicationRequest:medication inclusion mechanism, must-support element presence, and profile conformance validation. Mirrors the SHALL subset of au-fhir-core-inferno's MedicationRequestGroup (medication_request_read_test, medication_request__id_search_test, medication_request_authoredon_search_test, medication_request_intent_search_test, medication_request_status_search_test, medication_request_patient_search_test, medication_request_patient_include_medication_test, medication_request_must_support_test, medication_request_validation_test) \u2014 the SHOULD/MAY-level combinatorial search tests (chained patient.identifier searches, multi-param AND/OR combinations, the further patient+intent+authoredon/status _include variants) are not replicated here; see fhirfrog/au-core-compiler#6 for the general scope rationale established for Patient, applied here for #14. Known engine limitation, documented here rather than as a new issue: fhir-frog's AssertionEvaluator validateProfileId assertion validates whichever resource came back from the *last* operation directly; it cannot reach into a specific entry of a returned Bundle to separately validate an included resource (e.g. the Medication pulled in via _include) against its own profile as a sub-check. Consequently the IncludeMedication test below only demonstrates the retrieval mechanism \u2014 asserting via FHIRPath that the Bundle contains both a MedicationRequest and a Medication entry \u2014 and does not attempt to validateProfileId the included Medication against au-core-medication. MedicationRequest's own profile conformance is instead exercised separately in the ProfileValidation test via a plain read followed by validateProfileId, which the engine handles correctly. A second, unrelated engine quirk found during validation against a live HAPI server: HAPI's FHIRPathEngine (ca.uhn.fhir newFhirPath(), used by fhir-frog's assertion evaluator) does not resolve the suffixed choice-type accessor form (e.g. `medicationReference`) as a property name on a resource instance \u2014 only the base choice name (`medication`) or an explicit `.ofType(Reference)`/`as Reference` filter on it work. The MustSupport test below therefore asserts `MedicationRequest.medication.ofType(Reference).exists()` rather than `MedicationRequest.medicationReference.exists()` to check the specific slice actually populated by the fixture.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    },
+    {
+      "id": "au-core-medicationrequest-medication",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-medicationrequest-medication.json"
+      }
+    },
+    {
+      "id": "au-core-medicationrequest-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-medicationrequest-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    },
+    {
+      "name": "medicationRequestId",
+      "sourceId": "au-core-medicationrequest-conformant",
+      "expression": "MedicationRequest.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "MedicationRequest",
+            "params": "/${medicationRequestId}",
+            "encodeRequestUrl": true,
+            "description": "Read MedicationRequest by id (${medicationRequestId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read MedicationRequest by id (${medicationRequestId})"
+    },
+    {
+      "name": "SearchById",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationRequest",
+            "params": "?_id=${medicationRequestId}",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationRequest where _id = ${medicationRequestId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationRequest).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationRequest).exists()"
+          }
+        }
+      ],
+      "description": "Search MedicationRequest where _id = ${medicationRequestId}"
+    },
+    {
+      "name": "SearchByAuthoredOn",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationRequest",
+            "params": "?authoredon=2024-03-15",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationRequest where authoredon = 2024-03-15"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationRequest).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationRequest).exists()"
+          }
+        }
+      ],
+      "description": "Search MedicationRequest where authoredon = 2024-03-15"
+    },
+    {
+      "name": "SearchByIntent",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationRequest",
+            "params": "?intent=order",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationRequest where intent = order"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationRequest).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationRequest).exists()"
+          }
+        }
+      ],
+      "description": "Search MedicationRequest where intent = order"
+    },
+    {
+      "name": "SearchByStatus",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationRequest",
+            "params": "?status=active",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationRequest where status = active"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationRequest).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationRequest).exists()"
+          }
+        }
+      ],
+      "description": "Search MedicationRequest where status = active"
+    },
+    {
+      "name": "SearchByPatient",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationRequest",
+            "params": "?patient=${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationRequest where patient = ${patientId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationRequest).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationRequest).exists()"
+          }
+        }
+      ],
+      "description": "Search MedicationRequest where patient = ${patientId}"
+    },
+    {
+      "name": "SearchWithIncludeMedication",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationRequest",
+            "params": "?patient=${patientId}&_include=MedicationRequest:medication",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationRequest where patient = ${patientId} and _include = MedicationRequest:medication"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationRequest).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationRequest).exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Medication).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Medication).exists()"
+          }
+        }
+      ],
+      "description": "Search MedicationRequest where patient = ${patientId} and _include = MedicationRequest:medication"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "MedicationRequest",
+            "params": "/${medicationRequestId}",
+            "encodeRequestUrl": true,
+            "description": "Read MedicationRequest by id (${medicationRequestId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.status.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.status.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.intent.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.intent.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.medication.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.medication.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.medication.ofType(Reference).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.medication.ofType(Reference).exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.subject.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.subject.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.encounter.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.encounter.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.authoredOn.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.authoredOn.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.requester.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.requester.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.reasonCode.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.reasonCode.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.reasonReference.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.reasonReference.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.dosageInstruction.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.dosageInstruction.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationRequest.dosageInstruction.text.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationRequest.dosageInstruction.text.exists()"
+          }
+        }
+      ],
+      "description": "Read MedicationRequest by id (${medicationRequestId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "MedicationRequest",
+            "params": "/${medicationRequestId}",
+            "encodeRequestUrl": true,
+            "description": "Read MedicationRequest by id (${medicationRequestId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-medicationrequest",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-medicationrequest"
+          }
+        }
+      ],
+      "description": "Read MedicationRequest by id (${medicationRequestId})"
+    }
+  ]
+}

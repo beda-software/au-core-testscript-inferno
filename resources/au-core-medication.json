@@ -1,0 +1,120 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-medication",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-medication",
+  "name": "AUCoreMedication",
+  "title": "AU Core Medication \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core Medication (2.0.0) requirements reachable via direct read: read by id, must-support element presence (code; code.coding pbs and amt slices), and profile conformance validation. AU Core Medication defines no AU-Core search parameters, so this TestScript is read-only by design \u2014 there is no per-search-param test block, unlike au-core-patient. Inferno's own coverage of au-core-medication is itself indirect: config.basic.json sets Medication: {skip_generation: true}, so no standalone Inferno group exists for this profile, and it is otherwise reached only via MedicationRequest's medication_request_medication_inclusion_validation_test.rb, which validates a Medication resource fetched through _include=MedicationRequest:medication. That inclusion pattern is covered separately by au-core-medicationrequest's TestScript (fhirfrog/au-core-compiler#14) and is not duplicated here. This TestScript instead exercises Medication directly by id, mirroring the SHALL-only scope precedent set for Patient (fhirfrog/au-core-compiler#6). See fhirfrog/au-core-compiler#13 for scope rationale.",
+  "fixture": [
+    {
+      "id": "au-core-medication-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-medication-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "medicationId",
+      "sourceId": "au-core-medication-conformant",
+      "expression": "Medication.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Medication",
+            "params": "/${medicationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Medication by id (${medicationId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Medication by id (${medicationId})"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Medication",
+            "params": "/${medicationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Medication by id (${medicationId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Medication.code.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Medication.code.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Medication.code.coding.where(system = 'http://pbs.gov.au/code/item').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Medication.code.coding.where(system = 'http://pbs.gov.au/code/item').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Medication.code.coding.where(system = 'http://snomed.info/sct').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Medication.code.coding.where(system = 'http://snomed.info/sct').exists()"
+          }
+        }
+      ],
+      "description": "Read Medication by id (${medicationId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Medication",
+            "params": "/${medicationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Medication by id (${medicationId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-medication",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-medication"
+          }
+        }
+      ],
+      "description": "Read Medication by id (${medicationId})"
+    }
+  ]
+}

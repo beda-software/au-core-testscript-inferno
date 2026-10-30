@@ -1,0 +1,52 @@
+{
+  "resourceType": "RelatedPerson",
+  "id": "au-core-relatedperson-conformant",
+  "meta": {
+    "profile": [
+      "http://hl7.org.au/fhir/core/StructureDefinition/au-core-relatedperson"
+    ]
+  },
+  "patient": {
+    "reference": "Patient/au-core-relatedperson-patient"
+  },
+  "relationship": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+          "code": "FTH",
+          "display": "father"
+        }
+      ],
+      "text": "Father"
+    }
+  ],
+  "name": [
+    {
+      "use": "official",
+      "family": "Banks",
+      "given": [
+        "Bob"
+      ],
+      "text": "Bob Banks"
+    }
+  ],
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "0400000002",
+      "use": "mobile"
+    }
+  ],
+  "address": [
+    {
+      "use": "home",
+      "line": [
+        "1 Test Street"
+      ],
+      "city": "Testville",
+      "state": "NSW",
+      "postalCode": "2000"
+    }
+  ]
+}

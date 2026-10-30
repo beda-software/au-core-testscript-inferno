@@ -1,0 +1,120 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-sexassignedab",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-sexassignedab",
+  "name": "AUCoreSexAssignedAtBirth",
+  "title": "AU Core Sex Assigned at Birth extension — presence & profile conformance",
+  "status": "active",
+  "description": "Covers the AU Core Sex Assigned at Birth extension (au-core-rsg-sexassignedab, 2.0.0) requirements identified in fhirfrog/au-core-compiler#25 (AUC-026). Correction to the issue's own framing, discovered while authoring this TestScript: au-core-rsg-sexassignedab is a *content-level* refinement of the generic individual-recordedSexOrGender extension, not a separately-URL'd one - its own snapshot fixes Extension.url to the base extension's canonical URL (http://hl7.org/fhir/StructureDefinition/individual-recordedSexOrGender), not its own. au-core-patient DOES inherit a Patient.extension:recordedSexOrGender slot from its au-patient (AU Base) baseDefinition (visible only in the snapshot, not the differential - which is why the original gap-analysis missed it), typed generically against individual-recordedSexOrGender rather than specifically against au-core-rsg-sexassignedab. So the real, narrower gap is: nothing distinguishes/tests the 'sex assigned at birth' flavour specifically (identified only by the fixed SNOMED 1515311000168102 'Sex assigned at birth' value on its extension:type sub-extension) from other uses of that same generic slot. Covers presence of both must-support sub-extensions (extension:value - biological sex, extensible-bound to the AU THS biological-sex-1 ValueSet; extension:type - fixed to the SNOMED code identifying this specific flavour) via a generic FHIRPath probe against a fetched Patient, exactly as the issue itself suggested was possible without any new engine capability. ProfileValidation runs validateProfileId against au-core-patient to confirm the whole resource - extension included, now correctly url'd to match the inherited slot - remains profile-conformant.",
+  "fixture": [
+    {
+      "id": "au-core-patient-sexassignedab",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-sexassignedab.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-sexassignedab",
+      "expression": "Patient.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Patient",
+            "params": "/${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Read Patient by id (${patientId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Patient by id (${patientId})"
+    },
+    {
+      "name": "ExtensionPresence",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Patient",
+            "params": "/${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Read Patient by id (${patientId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-recordedSexOrGender').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-recordedSexOrGender').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-recordedSexOrGender').extension.where(url = 'value').value.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-recordedSexOrGender').extension.where(url = 'value').value.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-recordedSexOrGender').extension.where(url = 'type').value.coding.code.where($this = '1515311000168102').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-recordedSexOrGender').extension.where(url = 'type').value.coding.code.where($this = '1515311000168102').exists()"
+          }
+        }
+      ],
+      "description": "Read Patient by id (${patientId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Patient",
+            "params": "/${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Read Patient by id (${patientId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-patient",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-patient"
+          }
+        }
+      ],
+      "description": "Read Patient by id (${patientId})"
+    }
+  ]
+}

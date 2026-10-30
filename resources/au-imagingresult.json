@@ -1,0 +1,351 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-imagingresult",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-imagingresult",
+  "name": "AUImagingResult",
+  "title": "AU Imaging Result Observation — optionality discovery template",
+  "status": "active",
+  "description": "Covers fhirfrog/au-core-compiler#23 (AUC-018): au-imagingresult (hl7.fhir.au.base, not a local au-core-* profile) has zero must-support elements of its own, and neither au-fhir-core-inferno (deliberately or not - couldn't confirm skip_generation for it specifically, see the issue's comment thread) nor fhir-frog test it today. Rather than a conventional must-support conformance gate (there's nothing profile-mandated to gate on), this is deliberately built as a discovery template: SHALL-level read/search-type interaction checks (the one real, resource-level requirement the CapabilityStatement does impose) run with warningOnly:false, while every element this profile merely *allows* (category:anatomicRegionOfInterest, extension:bodyStructure vs plain bodySite, value[x]/dataAbsentReason, component, hasMember) is probed with warningOnly:true against two fixtures - 'au-imagingresult-conformant' (a generous implementer) and 'au-imagingresult-minimal' (a bare-bones one). Building these two fixtures surfaced that 'zero must-support elements' does not mean unconstrained: au-imagingresult carries its own hard invariants not visible from the must-support list alone - inv-obs-0 (value, dataAbsentReason, or a child observation with either must be present - the minimal fixture needed a plain dataAbsentReason to satisfy this, it cannot be genuinely empty), inv-obs-1 (the bodyStructure Reference extension and the plain bodySite CodeableConcept are mutually exclusive, inherited from base Observation's own obs-7 rule about a component sharing its parent's code while both carry a value). Run against a real server, OptionalElementsProbeMinimal's warnings (not failures) are the point: they show which of the genuinely-optional elements that server does or doesn't populate. This only works because assert.warningOnly, though already required and set on every assertion since fhirfrog/fhir-frog's 'add required encodeRequestUrl/warningOnly fields' fix, was never actually read by PhaseExecutor - a failing warningOnly assertion still failed the whole test, identical to a hard one. Fixed alongside this TestScript (see fhirfrog/fhir-frog's PhaseExecutor commit): a failing warningOnly assertion now reports as TestReport's own WARNING result code instead of FAIL, and no longer fails the enclosing test/setup phase - proven by OptionalElementsProbeMinimal genuinely failing several of its own probe assertions against the minimal fixture while the TestScript as a whole still reports PASS.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    },
+    {
+      "id": "au-imagingresult-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-imagingresult-conformant.json"
+      }
+    },
+    {
+      "id": "au-imagingresult-minimal",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-imagingresult-minimal.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    },
+    {
+      "name": "imagingResultId",
+      "sourceId": "au-imagingresult-conformant",
+      "expression": "Observation.id"
+    },
+    {
+      "name": "imagingResultMinimalId",
+      "sourceId": "au-imagingresult-minimal",
+      "expression": "Observation.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${imagingResultId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${imagingResultId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${imagingResultId})"
+    },
+    {
+      "name": "SearchByPatientCategory",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "params": "?patient=Patient/${patientId}&category=http://terminology.hl7.org/CodeSystem/observation-category|imaging",
+            "encodeRequestUrl": true,
+            "description": "Search Observation where patient = Patient/${patientId} and category = http://terminology.hl7.org/CodeSystem/observation-category|imaging"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Observation).category.coding.code.where($this = 'imaging').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Observation).category.coding.code.where($this = 'imaging').exists()"
+          }
+        }
+      ],
+      "description": "Search Observation where patient = Patient/${patientId} and category = http://terminology.hl7.org/CodeSystem/observation-category|imaging"
+    },
+    {
+      "name": "SearchByPatientCode",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "params": "?patient=Patient/${patientId}&code=http://snomed.info/sct|399208008",
+            "encodeRequestUrl": true,
+            "description": "Search Observation where patient = Patient/${patientId} and code = http://snomed.info/sct|399208008"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Observation).code.coding.code.where($this = '399208008').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Observation).code.coding.code.where($this = '399208008').exists()"
+          }
+        }
+      ],
+      "description": "Search Observation where patient = Patient/${patientId} and code = http://snomed.info/sct|399208008"
+    },
+    {
+      "name": "OptionalElementsProbeGenerous",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${imagingResultId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${imagingResultId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.category.coding.code.where($this = 'imaging').exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.category.coding.code.where($this = 'imaging').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.category.where(coding.system = 'http://snomed.info/sct').exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.category.where(coding.system = 'http://snomed.info/sct').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/bodySite').exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/bodySite').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.value.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.value.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.dataAbsentReason.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.dataAbsentReason.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.bodySite.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.bodySite.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.component.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.component.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.hasMember.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.hasMember.exists()"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${imagingResultId})"
+    },
+    {
+      "name": "OptionalElementsProbeMinimal",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${imagingResultMinimalId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${imagingResultMinimalId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.category.where(coding.system = 'http://snomed.info/sct').exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.category.where(coding.system = 'http://snomed.info/sct').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/bodySite').exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/bodySite').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.value.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.value.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.dataAbsentReason.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.dataAbsentReason.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.bodySite.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.bodySite.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.component.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.component.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.hasMember.exists()",
+            "operator": "eval",
+            "warningOnly": true,
+            "description": "Check: Observation.hasMember.exists()"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${imagingResultMinimalId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${imagingResultId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${imagingResultId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/StructureDefinition/au-imagingresult",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/StructureDefinition/au-imagingresult"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${imagingResultId})"
+    },
+    {
+      "name": "ProfileValidationMinimal",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${imagingResultMinimalId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${imagingResultMinimalId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/StructureDefinition/au-imagingresult",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/StructureDefinition/au-imagingresult"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${imagingResultMinimalId})"
+    }
+  ]
+}

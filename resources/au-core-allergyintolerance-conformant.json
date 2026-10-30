@@ -1,0 +1,56 @@
+{
+  "resourceType": "AllergyIntolerance",
+  "id": "au-core-allergyintolerance-conformant",
+  "clinicalStatus": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical",
+        "code": "active",
+        "display": "Active"
+      }
+    ]
+  },
+  "verificationStatus": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/allergyintolerance-verification",
+        "code": "confirmed",
+        "display": "Confirmed"
+      }
+    ]
+  },
+  "code": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "91935009",
+        "display": "Allergy to peanuts"
+      }
+    ]
+  },
+  "patient": {
+    "reference": "Patient/au-core-patient-conformant"
+  },
+  "onsetDateTime": "2020-06-01",
+  "note": [
+    {
+      "text": "Synthetic test allergy record for AU Core Frog conformance testing."
+    }
+  ],
+  "reaction": [
+    {
+      "manifestation": [
+        {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "271807003",
+              "display": "Skin rash"
+            }
+          ]
+        }
+      ],
+      "severity": "moderate"
+    }
+  ]
+}

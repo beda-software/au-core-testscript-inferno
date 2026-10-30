@@ -1,0 +1,25 @@
+{
+  "resourceType": "Condition",
+  "id": "au-core-encounter-reason-condition",
+  "clinicalStatus": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+        "code": "active",
+        "display": "Active"
+      }
+    ]
+  },
+  "code": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "185349003",
+        "display": "Encounter for check up"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/au-core-patient-conformant"
+  }
+}

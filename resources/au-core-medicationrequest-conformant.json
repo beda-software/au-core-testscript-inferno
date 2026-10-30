@@ -1,0 +1,34 @@
+{
+  "resourceType": "MedicationRequest",
+  "id": "au-core-medicationrequest-conformant",
+  "status": "active",
+  "intent": "order",
+  "medicationReference": {
+    "reference": "Medication/au-core-medicationrequest-medication"
+  },
+  "subject": {
+    "reference": "Patient/au-core-patient-conformant"
+  },
+  "encounter": {
+    "display": "Frog Pond Clinic encounter"
+  },
+  "authoredOn": "2024-03-15",
+  "requester": {
+    "display": "Dr Sample Frog"
+  },
+  "reasonCode": [
+    {
+      "text": "Test indication for MedicationRequest conformance testing"
+    }
+  ],
+  "reasonReference": [
+    {
+      "display": "Frog test condition"
+    }
+  ],
+  "dosageInstruction": [
+    {
+      "text": "Take one tablet daily"
+    }
+  ]
+}

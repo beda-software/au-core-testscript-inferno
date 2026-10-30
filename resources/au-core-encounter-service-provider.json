@@ -1,0 +1,18 @@
+{
+  "resourceType": "Organization",
+  "id": "au-core-encounter-service-provider",
+  "identifier": [
+    {
+      "system": "http://ns.electronichealth.net.au/id/hi/hpio/1.0",
+      "value": "8003620000000011"
+    }
+  ],
+  "name": "Frog Health Service",
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "0300000000",
+      "use": "work"
+    }
+  ]
+}

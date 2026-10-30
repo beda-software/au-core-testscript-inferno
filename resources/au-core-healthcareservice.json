@@ -1,0 +1,260 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-healthcareservice",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-healthcareservice",
+  "name": "AUCoreHealthcareService",
+  "title": "AU Core HealthcareService \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the AU Core HealthcareService (2.0.0) requirements: read, search by name/identifier/_id/service-type, must-support element presence, and profile conformance validation. Mirrors au-fhir-core-inferno's HealthcareServiceGroup (healthcare_service_read_test, healthcare_service_name_search_test, healthcare_service_identifier_search_test, healthcare_service_id_search_test, healthcare_service_service_type_search_test, healthcare_service_must_support_test, healthcare_service_validation_test). Per fhirfrog/au-core-compiler#10, all four search parameters named in that issue (name/identifier/_id/service-type) are exercised as individual single-parameter search tests even though Inferno labels only the name search as SHALL for this resource (identifier, _id and service-type are SHOULD) \u2014 HealthcareService is a small, mostly generic-CRUD profile, so this TestScript still keeps to the SHALL-level scope rationale from #6 by testing each search parameter once in isolation rather than replicating Inferno's SHOULD/MAY combinatorial and chained-search coverage. HealthcareService has no mandatory reference to Patient or any other resource, so the fixture below is fully self-contained.",
+  "fixture": [
+    {
+      "id": "au-core-healthcareservice-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-healthcareservice-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "healthcareServiceId",
+      "sourceId": "au-core-healthcareservice-conformant",
+      "expression": "HealthcareService.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "HealthcareService",
+            "params": "/${healthcareServiceId}",
+            "encodeRequestUrl": true,
+            "description": "Read HealthcareService by id (${healthcareServiceId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read HealthcareService by id (${healthcareServiceId})"
+    },
+    {
+      "name": "SearchByName",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "HealthcareService",
+            "params": "?name=Frog",
+            "encodeRequestUrl": true,
+            "description": "Search HealthcareService where name = Frog"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(HealthcareService).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(HealthcareService).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search HealthcareService where name = Frog"
+    },
+    {
+      "name": "SearchByIdentifier",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "HealthcareService",
+            "params": "?identifier=http://pca.digitalhealth.gov.au/id/pca-healthcare-service|4d00ad2659cb4b54bd8028798af62631",
+            "encodeRequestUrl": true,
+            "description": "Search HealthcareService where identifier = http://pca.digitalhealth.gov.au/id/pca-healthcare-service|4d00ad2659cb4b54bd8028798af62631"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(HealthcareService).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(HealthcareService).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search HealthcareService where identifier = http://pca.digitalhealth.gov.au/id/pca-healthcare-service|4d00ad2659cb4b54bd8028798af62631"
+    },
+    {
+      "name": "SearchById",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "HealthcareService",
+            "params": "?_id=${healthcareServiceId}",
+            "encodeRequestUrl": true,
+            "description": "Search HealthcareService where _id = ${healthcareServiceId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(HealthcareService).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(HealthcareService).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search HealthcareService where _id = ${healthcareServiceId}"
+    },
+    {
+      "name": "SearchByServiceType",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "HealthcareService",
+            "params": "?service-type=http://snomed.info/sct|722140001",
+            "encodeRequestUrl": true,
+            "description": "Search HealthcareService where service-type = http://snomed.info/sct|722140001"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(HealthcareService).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(HealthcareService).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search HealthcareService where service-type = http://snomed.info/sct|722140001"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "HealthcareService",
+            "params": "/${healthcareServiceId}",
+            "encodeRequestUrl": true,
+            "description": "Read HealthcareService by id (${healthcareServiceId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "HealthcareService.identifier.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: HealthcareService.identifier.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "HealthcareService.type.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: HealthcareService.type.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "HealthcareService.name.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: HealthcareService.name.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "HealthcareService.telecom.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: HealthcareService.telecom.exists()"
+          }
+        }
+      ],
+      "description": "Read HealthcareService by id (${healthcareServiceId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "HealthcareService",
+            "params": "/${healthcareServiceId}",
+            "encodeRequestUrl": true,
+            "description": "Read HealthcareService by id (${healthcareServiceId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-healthcareservice",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-healthcareservice"
+          }
+        }
+      ],
+      "description": "Read HealthcareService by id (${healthcareServiceId})"
+    }
+  ]
+}

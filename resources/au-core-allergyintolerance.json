@@ -1,0 +1,280 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-allergyintolerance",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-allergyintolerance",
+  "name": "AUCoreAllergyIntolerance",
+  "title": "AU Core AllergyIntolerance \u2014 SHALL-level conformance plus chained identifier search",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core AllergyIntolerance (2.0.0) requirements: read, search by patient, must-support element presence, and profile conformance validation, plus a demonstration of the AU-specific chained patient.identifier (IHI) search that Inferno adds beyond generic us-core coverage. Also exercises the (MAY-level) standalone clinical-status search since it was explicitly called out for coverage in fhirfrog/au-core-compiler#7. Mirrors the relevant subset of au-fhir-core-inferno's AllergyIntoleranceGroup (allergy_intolerance_read_test, allergy_intolerance_patient_search_test, allergy_intolerance_clinical_status_search_test, allergy_intolerance_patient_ihi_chain_search_test, allergy_intolerance_must_support_test, allergy_intolerance_validation_test) \u2014 the SHOULD-level combined patient+clinical-status search, the Medicare/DVA chain variants (structurally identical to the IHI chain demonstrated here), the POST-search variant, and the reference-resolution test are not replicated; see fhirfrog/au-core-compiler#7 for scope rationale, following #6's precedent.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    },
+    {
+      "id": "au-core-allergyintolerance-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-allergyintolerance-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    },
+    {
+      "name": "allergyIntoleranceId",
+      "sourceId": "au-core-allergyintolerance-conformant",
+      "expression": "AllergyIntolerance.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "AllergyIntolerance",
+            "params": "/${allergyIntoleranceId}",
+            "encodeRequestUrl": true,
+            "description": "Read AllergyIntolerance by id (${allergyIntoleranceId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read AllergyIntolerance by id (${allergyIntoleranceId})"
+    },
+    {
+      "name": "SearchByPatient",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "AllergyIntolerance",
+            "params": "?patient=${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Search AllergyIntolerance where patient = ${patientId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(AllergyIntolerance).note.text.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(AllergyIntolerance).note.text.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search AllergyIntolerance where patient = ${patientId}"
+    },
+    {
+      "name": "SearchByClinicalStatus",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "AllergyIntolerance",
+            "params": "?clinical-status=http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical|active",
+            "encodeRequestUrl": true,
+            "description": "Search AllergyIntolerance where clinical-status = http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical|active"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(AllergyIntolerance).note.text.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(AllergyIntolerance).note.text.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search AllergyIntolerance where clinical-status = http://terminology.hl7.org/CodeSystem/allergyintolerance-clinical|active"
+    },
+    {
+      "name": "SearchByPatientIdentifierIHIChain",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "AllergyIntolerance",
+            "params": "?patient.identifier=http://ns.electronichealth.net.au/id/hi/ihi/1.0|8003608833357361",
+            "encodeRequestUrl": true,
+            "description": "Search AllergyIntolerance where patient.identifier = http://ns.electronichealth.net.au/id/hi/ihi/1.0|8003608833357361"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(AllergyIntolerance).note.text.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(AllergyIntolerance).note.text.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search AllergyIntolerance where patient.identifier = http://ns.electronichealth.net.au/id/hi/ihi/1.0|8003608833357361"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "AllergyIntolerance",
+            "params": "/${allergyIntoleranceId}",
+            "encodeRequestUrl": true,
+            "description": "Read AllergyIntolerance by id (${allergyIntoleranceId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "AllergyIntolerance.clinicalStatus.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: AllergyIntolerance.clinicalStatus.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "AllergyIntolerance.verificationStatus.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: AllergyIntolerance.verificationStatus.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "AllergyIntolerance.code.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: AllergyIntolerance.code.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "AllergyIntolerance.patient.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: AllergyIntolerance.patient.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "AllergyIntolerance.onset.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: AllergyIntolerance.onset.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "AllergyIntolerance.note.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: AllergyIntolerance.note.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "AllergyIntolerance.reaction.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: AllergyIntolerance.reaction.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "AllergyIntolerance.reaction.manifestation.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: AllergyIntolerance.reaction.manifestation.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "AllergyIntolerance.reaction.severity.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: AllergyIntolerance.reaction.severity.exists()"
+          }
+        }
+      ],
+      "description": "Read AllergyIntolerance by id (${allergyIntoleranceId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "AllergyIntolerance",
+            "params": "/${allergyIntoleranceId}",
+            "encodeRequestUrl": true,
+            "description": "Read AllergyIntolerance by id (${allergyIntoleranceId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-allergyintolerance",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-allergyintolerance"
+          }
+        }
+      ],
+      "description": "Read AllergyIntolerance by id (${allergyIntoleranceId})"
+    }
+  ]
+}

@@ -1,0 +1,314 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-patient",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-patient",
+  "name": "AUCorePatient",
+  "title": "AU Core Patient \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core Patient (2.0.0) requirements: read, search by _id, search by identifier, must-support element presence, and profile conformance validation. Mirrors the SHALL subset of au-fhir-core-inferno's PatientGroup (patient_read_test, patient__id_search_test, patient_identifier_search_test, patient_must_support_test, patient_validation_test) \u2014 the SHOULD/MAY-level combinatorial search tests (name, gender, birthdate, indigenous-status, gender-identity and their combinations) are not replicated here; see fhirfrog/au-core-compiler#6 for scope rationale.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Patient",
+            "params": "/${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Read Patient by id (${patientId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Patient by id (${patientId})"
+    },
+    {
+      "name": "SearchById",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Patient",
+            "params": "?_id=${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Search Patient where _id = ${patientId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Patient).name.family.contains('Frog')",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Patient).name.family.contains('Frog')"
+          }
+        }
+      ],
+      "description": "Search Patient where _id = ${patientId}"
+    },
+    {
+      "name": "SearchByIdentifier",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Patient",
+            "params": "?identifier=http://ns.electronichealth.net.au/id/hi/ihi/1.0|8003608833357361",
+            "encodeRequestUrl": true,
+            "description": "Search Patient where identifier = http://ns.electronichealth.net.au/id/hi/ihi/1.0|8003608833357361"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Patient).name.family.contains('Frog')",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Patient).name.family.contains('Frog')"
+          }
+        }
+      ],
+      "description": "Search Patient where identifier = http://ns.electronichealth.net.au/id/hi/ihi/1.0|8003608833357361"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Patient",
+            "params": "/${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Read Patient by id (${patientId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.identifier.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.identifier.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.name.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.name.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.name.use.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.name.use.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.name.text.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.name.text.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.name.family.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.name.family.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.name.given.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.name.given.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.telecom.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.telecom.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.telecom.system.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.telecom.system.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.telecom.use.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.telecom.use.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.telecom.value.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.telecom.value.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.gender.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.gender.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.birthDate.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.birthDate.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.address.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.address.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.communication.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.communication.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.communication.language.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.communication.language.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.communication.preferred.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.communication.preferred.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.extension.where(url = 'http://hl7.org.au/fhir/StructureDefinition/indigenous-status').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.extension.where(url = 'http://hl7.org.au/fhir/StructureDefinition/indigenous-status').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-genderIdentity').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-genderIdentity').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-pronouns').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Patient.extension.where(url = 'http://hl7.org/fhir/StructureDefinition/individual-pronouns').exists()"
+          }
+        }
+      ],
+      "description": "Read Patient by id (${patientId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Patient",
+            "params": "/${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Read Patient by id (${patientId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-patient",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-patient"
+          }
+        }
+      ],
+      "description": "Read Patient by id (${patientId})"
+    }
+  ]
+}

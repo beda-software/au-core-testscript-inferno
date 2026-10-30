@@ -1,0 +1,313 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-condition",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-condition",
+  "name": "AUCoreCondition",
+  "title": "AU Core Condition \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core Condition (2.0.0) requirements: read, search by patient, the SHALL search-combos patient+category and patient+clinical-status, must-support element presence, and profile conformance validation, plus one SHOULD search-combo (patient+code) included to demonstrate the multi-param querystring pattern. Mirrors the SHALL subset of au-fhir-core-inferno's ConditionGroup (condition_read_test, condition_patient_search_test, condition_patient_category_search_test, condition_patient_clinical_status_search_test, condition_must_support_test, condition_validation_test). The remaining SHOULD/MAY-level combinatorial search tests (patient+category+clinical-status, patient+onset-date, code with multiple-or, onset-date with multiple-and, the DVA/IHI/Medicare identifier chain searches on patient, and the reference-resolution test) are not replicated here, per the same SHALL-only scope rationale used for Patient; see fhirfrog/au-core-compiler#6 and #8.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    },
+    {
+      "id": "au-core-condition-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-condition-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    },
+    {
+      "name": "conditionId",
+      "sourceId": "au-core-condition-conformant",
+      "expression": "Condition.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Condition",
+            "params": "/${conditionId}",
+            "encodeRequestUrl": true,
+            "description": "Read Condition by id (${conditionId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Condition by id (${conditionId})"
+    },
+    {
+      "name": "SearchByPatient",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Condition",
+            "params": "?patient=${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Search Condition where patient = ${patientId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Condition).where(code.coding.code = '68566005').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Condition).where(code.coding.code = '68566005').exists()"
+          }
+        }
+      ],
+      "description": "Search Condition where patient = ${patientId}"
+    },
+    {
+      "name": "SearchByPatientAndCategory",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Condition",
+            "params": "?patient=${patientId}&category=http://terminology.hl7.org/CodeSystem/condition-category|problem-list-item",
+            "encodeRequestUrl": true,
+            "description": "Search Condition where patient = ${patientId} and category = http://terminology.hl7.org/CodeSystem/condition-category|problem-list-item"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Condition).where(category.coding.code = 'problem-list-item').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Condition).where(category.coding.code = 'problem-list-item').exists()"
+          }
+        }
+      ],
+      "description": "Search Condition where patient = ${patientId} and category = http://terminology.hl7.org/CodeSystem/condition-category|problem-list-item"
+    },
+    {
+      "name": "SearchByPatientAndClinicalStatus",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Condition",
+            "params": "?patient=${patientId}&clinical-status=http://terminology.hl7.org/CodeSystem/condition-clinical|resolved",
+            "encodeRequestUrl": true,
+            "description": "Search Condition where patient = ${patientId} and clinical-status = http://terminology.hl7.org/CodeSystem/condition-clinical|resolved"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Condition).where(clinicalStatus.coding.code = 'resolved').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Condition).where(clinicalStatus.coding.code = 'resolved').exists()"
+          }
+        }
+      ],
+      "description": "Search Condition where patient = ${patientId} and clinical-status = http://terminology.hl7.org/CodeSystem/condition-clinical|resolved"
+    },
+    {
+      "name": "SearchByPatientAndCode",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Condition",
+            "params": "?patient=${patientId}&code=http://snomed.info/sct|68566005",
+            "encodeRequestUrl": true,
+            "description": "Search Condition where patient = ${patientId} and code = http://snomed.info/sct|68566005"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Condition).where(code.coding.code = '68566005').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Condition).where(code.coding.code = '68566005').exists()"
+          }
+        }
+      ],
+      "description": "Search Condition where patient = ${patientId} and code = http://snomed.info/sct|68566005"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Condition",
+            "params": "/${conditionId}",
+            "encodeRequestUrl": true,
+            "description": "Read Condition by id (${conditionId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Condition.clinicalStatus.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Condition.clinicalStatus.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Condition.verificationStatus.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Condition.verificationStatus.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Condition.category.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Condition.category.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Condition.severity.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Condition.severity.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Condition.code.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Condition.code.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Condition.subject.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Condition.subject.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Condition.onset.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Condition.onset.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Condition.abatement.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Condition.abatement.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Condition.note.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Condition.note.exists()"
+          }
+        }
+      ],
+      "description": "Read Condition by id (${conditionId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Condition",
+            "params": "/${conditionId}",
+            "encodeRequestUrl": true,
+            "description": "Read Condition by id (${conditionId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-condition",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-condition"
+          }
+        }
+      ],
+      "description": "Read Condition by id (${conditionId})"
+    }
+  ]
+}

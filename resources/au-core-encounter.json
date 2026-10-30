@@ -1,0 +1,377 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-encounter",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-encounter",
+  "name": "AUCoreEncounter",
+  "title": "AU Core Encounter \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core Encounter (2.0.0) requirements: read, search by patient, the SHALL search-combo patient+date, must-support element presence, and profile conformance validation. Mirrors the SHALL subset of au-fhir-core-inferno's EncounterGroup (encounter_read_test, encounter_patient_search_test, encounter_date_patient_search_test, encounter_must_support_test, encounter_validation_test). Per fhirfrog/au-core-compiler#9, two SHOULD/MAY-level combinatorial search tests are additionally included \u2014 SearchByDateMultipleAnd (date=ge...&date=le..., encounter_date_multiple_and_search_test) and SearchByStatusMultipleOr (status=a,b, encounter_status_multiple_or_search_test) \u2014 because Inferno's generated group configures multi-and/multi-or combos specifically for Encounter's clinical-date and status search parameters and issue #9 calls these out by name; this is a deliberate, narrow exception to the SHALL-only scope rationale used for Patient (#6) and Condition (#8). The remaining SHOULD/MAY-level searches (status, date, class, class+patient, patient+status, patient+location, location) and the reference-resolution test are not replicated here.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    },
+    {
+      "id": "au-core-encounter-participant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-encounter-participant.json"
+      }
+    },
+    {
+      "id": "au-core-encounter-location",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-encounter-location.json"
+      }
+    },
+    {
+      "id": "au-core-encounter-service-provider",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-encounter-service-provider.json"
+      }
+    },
+    {
+      "id": "au-core-encounter-reason-condition",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-encounter-reason-condition.json"
+      }
+    },
+    {
+      "id": "au-core-encounter-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-encounter-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    },
+    {
+      "name": "encounterId",
+      "sourceId": "au-core-encounter-conformant",
+      "expression": "Encounter.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Encounter",
+            "params": "/${encounterId}",
+            "encodeRequestUrl": true,
+            "description": "Read Encounter by id (${encounterId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Encounter by id (${encounterId})"
+    },
+    {
+      "name": "SearchByPatient",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Encounter",
+            "params": "?patient=${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Search Encounter where patient = ${patientId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Encounter).class.code.where($this = 'AMB').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Encounter).class.code.where($this = 'AMB').exists()"
+          }
+        }
+      ],
+      "description": "Search Encounter where patient = ${patientId}"
+    },
+    {
+      "name": "SearchByPatientAndDate",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Encounter",
+            "params": "?patient=${patientId}&date=2024-03-01",
+            "encodeRequestUrl": true,
+            "description": "Search Encounter where patient = ${patientId} and date = 2024-03-01"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Encounter).status.where($this = 'finished').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Encounter).status.where($this = 'finished').exists()"
+          }
+        }
+      ],
+      "description": "Search Encounter where patient = ${patientId} and date = 2024-03-01"
+    },
+    {
+      "name": "SearchByDateMultipleAnd",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Encounter",
+            "params": "?date=ge2020-01-01&date=le2030-01-01",
+            "encodeRequestUrl": true,
+            "description": "Search Encounter where date = ge2020-01-01 and date = le2030-01-01"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Encounter).status.where($this = 'finished').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Encounter).status.where($this = 'finished').exists()"
+          }
+        }
+      ],
+      "description": "Search Encounter where date = ge2020-01-01 and date = le2030-01-01"
+    },
+    {
+      "name": "SearchByStatusMultipleOr",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Encounter",
+            "params": "?status=in-progress,finished",
+            "encodeRequestUrl": true,
+            "description": "Search Encounter where status = in-progress,finished"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Encounter).status.where($this = 'finished').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Encounter).status.where($this = 'finished').exists()"
+          }
+        }
+      ],
+      "description": "Search Encounter where status = in-progress,finished"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Encounter",
+            "params": "/${encounterId}",
+            "encodeRequestUrl": true,
+            "description": "Read Encounter by id (${encounterId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.status.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.status.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.class.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.class.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.subject.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.subject.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.participant.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.participant.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.participant.individual.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.participant.individual.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.participant.type.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.participant.type.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.period.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.period.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.reasonCode.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.reasonCode.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.reasonReference.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.reasonReference.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.location.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.location.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.location.location.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.location.location.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.serviceProvider.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.serviceProvider.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Encounter.serviceType.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Encounter.serviceType.exists()"
+          }
+        }
+      ],
+      "description": "Read Encounter by id (${encounterId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Encounter",
+            "params": "/${encounterId}",
+            "encodeRequestUrl": true,
+            "description": "Read Encounter by id (${encounterId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-encounter",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-encounter"
+          }
+        }
+      ],
+      "description": "Read Encounter by id (${encounterId})"
+    }
+  ]
+}

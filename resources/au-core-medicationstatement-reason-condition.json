@@ -1,0 +1,25 @@
+{
+  "resourceType": "Condition",
+  "id": "au-core-medicationstatement-reason-condition",
+  "clinicalStatus": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+        "code": "active"
+      }
+    ]
+  },
+  "code": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "68566005",
+        "display": "Urinary tract infectious disease"
+      }
+    ],
+    "text": "Urinary tract infection"
+  },
+  "subject": {
+    "reference": "Patient/au-core-patient-conformant"
+  }
+}

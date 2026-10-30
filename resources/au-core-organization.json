@@ -1,0 +1,234 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-organization",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-organization",
+  "name": "AUCoreOrganization",
+  "title": "AU Core Organization \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core Organization (2.0.0) requirements: read, search by identifier, search by name, must-support element presence (including identifier slice-presence checks for HPI-O and ABN), and profile conformance validation. Mirrors the SHALL subset of au-fhir-core-inferno's OrganizationGroup (organization_read_test, organization_identifier_search_test, organization_name_search_test, organization_must_support_test, organization_validation_test) \u2014 the SHOULD-level searches (_id, address) and the SHOULD-level identifier-slice-specific searches (organization_identifier_hpio_search_test, organization_identifier_abn_search_test) are not replicated as separate search tests here, consistent with fhirfrog/au-core-compiler#6 scope rationale. The HPI-O/ABN identifier slice presence that those SHOULD-level search tests would otherwise exercise is instead covered directly via FHIRPath assertions in the MustSupport test against a fixture carrying both slices; see fhirfrog/au-core-compiler#16.",
+  "fixture": [
+    {
+      "id": "au-core-organization-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-organization-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "organizationId",
+      "sourceId": "au-core-organization-conformant",
+      "expression": "Organization.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Organization",
+            "params": "/${organizationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Organization by id (${organizationId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Organization by id (${organizationId})"
+    },
+    {
+      "name": "SearchByIdentifier",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Organization",
+            "params": "?identifier=http://ns.electronichealth.net.au/id/hi/hpio/1.0|8003620000000013",
+            "encodeRequestUrl": true,
+            "description": "Search Organization where identifier = http://ns.electronichealth.net.au/id/hi/hpio/1.0|8003620000000013"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Organization).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Organization).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search Organization where identifier = http://ns.electronichealth.net.au/id/hi/hpio/1.0|8003620000000013"
+    },
+    {
+      "name": "SearchByName",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Organization",
+            "params": "?name=Frog",
+            "encodeRequestUrl": true,
+            "description": "Search Organization where name = Frog"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Organization).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Organization).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search Organization where name = Frog"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Organization",
+            "params": "/${organizationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Organization by id (${organizationId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Organization.identifier.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Organization.identifier.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Organization.identifier.where(system = 'http://ns.electronichealth.net.au/id/hi/hpio/1.0').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Organization.identifier.where(system = 'http://ns.electronichealth.net.au/id/hi/hpio/1.0').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Organization.identifier.where(system = 'http://hl7.org.au/id/abn').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Organization.identifier.where(system = 'http://hl7.org.au/id/abn').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Organization.type.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Organization.type.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Organization.name.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Organization.name.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Organization.telecom.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Organization.telecom.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Organization.telecom.system.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Organization.telecom.system.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Organization.telecom.value.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Organization.telecom.value.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Organization.address.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Organization.address.exists()"
+          }
+        }
+      ],
+      "description": "Read Organization by id (${organizationId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Organization",
+            "params": "/${organizationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Organization by id (${organizationId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-organization",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-organization"
+          }
+        }
+      ],
+      "description": "Read Organization by id (${organizationId})"
+    }
+  ]
+}

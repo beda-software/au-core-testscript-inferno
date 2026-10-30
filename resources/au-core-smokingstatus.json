@@ -1,0 +1,328 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-smokingstatus",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-smokingstatus",
+  "name": "AUCoreSmokingStatus",
+  "title": "AU Core Smoking Status — SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the AU Core Smoking Status Observation (au-core-smokingstatus, 2.0.0) requirements identified in fhirfrog/au-core-compiler#24 (AUC-026): read, search by patient+code/patient+category/patient+category+date (mirroring au-fhir-core-inferno's smokingstatus group), must-support element presence across all 8 MS elements (status, category, category:socialHistory, code, subject, effective[x], value[x], dataAbsentReason), and profile conformance validation. Both category (fixed social-history) and code (fixed SNOMED 1747861000168109 'Tobacco smoking status') are pattern-constrained to a single value by the profile itself, so both fixtures share identical category/code - only value[x] vs dataAbsentReason differs between them, mirroring the profile's au-core-obs-01 condition on value[x] (value or dataAbsentReason must be present). Per issue #24's own scoping call, this profile has no obligation-extension or negative-testing complexity beyond that presence pairing - unlike fhirfrog/au-core-compiler#21/#22, no dedicated ObligationNoError/responseCode test is included here, matching the simpler pattern already established for fhirfrog/au-core-compiler#6-#20.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    },
+    {
+      "id": "au-core-smokingstatus-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-smokingstatus-conformant.json"
+      }
+    },
+    {
+      "id": "au-core-smokingstatus-absent",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-smokingstatus-absent.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    },
+    {
+      "name": "smokingStatusId",
+      "sourceId": "au-core-smokingstatus-conformant",
+      "expression": "Observation.id"
+    },
+    {
+      "name": "smokingStatusAbsentId",
+      "sourceId": "au-core-smokingstatus-absent",
+      "expression": "Observation.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${smokingStatusId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${smokingStatusId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${smokingStatusId})"
+    },
+    {
+      "name": "SearchByPatientCode",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "params": "?patient=Patient/${patientId}&code=http://snomed.info/sct|1747861000168109",
+            "encodeRequestUrl": true,
+            "description": "Search Observation where patient = Patient/${patientId} and code = http://snomed.info/sct|1747861000168109"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Observation).code.coding.code.where($this = '1747861000168109').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Observation).code.coding.code.where($this = '1747861000168109').exists()"
+          }
+        }
+      ],
+      "description": "Search Observation where patient = Patient/${patientId} and code = http://snomed.info/sct|1747861000168109"
+    },
+    {
+      "name": "SearchByPatientCategory",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "params": "?patient=Patient/${patientId}&category=http://terminology.hl7.org/CodeSystem/observation-category|social-history",
+            "encodeRequestUrl": true,
+            "description": "Search Observation where patient = Patient/${patientId} and category = http://terminology.hl7.org/CodeSystem/observation-category|social-history"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Observation).category.coding.code.where($this = 'social-history').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Observation).category.coding.code.where($this = 'social-history').exists()"
+          }
+        }
+      ],
+      "description": "Search Observation where patient = Patient/${patientId} and category = http://terminology.hl7.org/CodeSystem/observation-category|social-history"
+    },
+    {
+      "name": "SearchByPatientCategoryDate",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Observation",
+            "params": "?patient=Patient/${patientId}&category=http://terminology.hl7.org/CodeSystem/observation-category|social-history&date=2026-01-10",
+            "encodeRequestUrl": true,
+            "description": "Search Observation where patient = Patient/${patientId} and category = http://terminology.hl7.org/CodeSystem/observation-category|social-history and date = 2026-01-10"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Observation).code.coding.code.where($this = '1747861000168109').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Observation).code.coding.code.where($this = '1747861000168109').exists()"
+          }
+        }
+      ],
+      "description": "Search Observation where patient = Patient/${patientId} and category = http://terminology.hl7.org/CodeSystem/observation-category|social-history and date = 2026-01-10"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${smokingStatusId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${smokingStatusId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.status.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Observation.status.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.category.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Observation.category.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.category.coding.code.where($this = 'social-history').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Observation.category.coding.code.where($this = 'social-history').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.code.coding.code.where($this = '1747861000168109').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Observation.code.coding.code.where($this = '1747861000168109').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.subject.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Observation.subject.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.effective.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Observation.effective.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.value.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Observation.value.exists()"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${smokingStatusId})"
+    },
+    {
+      "name": "MustSupportAbsent",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${smokingStatusAbsentId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${smokingStatusAbsentId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Observation.dataAbsentReason.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Observation.dataAbsentReason.exists()"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${smokingStatusAbsentId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${smokingStatusId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${smokingStatusId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-smokingstatus",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-smokingstatus"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${smokingStatusId})"
+    },
+    {
+      "name": "ProfileValidationAbsent",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Observation",
+            "params": "/${smokingStatusAbsentId}",
+            "encodeRequestUrl": true,
+            "description": "Read Observation by id (${smokingStatusAbsentId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-smokingstatus",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-smokingstatus"
+          }
+        }
+      ],
+      "description": "Read Observation by id (${smokingStatusAbsentId})"
+    }
+  ]
+}

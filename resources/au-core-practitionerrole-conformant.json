@@ -1,0 +1,66 @@
+{
+  "resourceType": "PractitionerRole",
+  "id": "au-core-practitionerrole-conformant",
+  "meta": {
+    "profile": [
+      "http://hl7.org.au/fhir/core/StructureDefinition/au-core-practitionerrole"
+    ]
+  },
+  "identifier": [
+    {
+      "type": {
+        "coding": [
+          {
+            "system": "http://terminology.hl7.org.au/CodeSystem/v2-0203",
+            "code": "UPIN"
+          }
+        ],
+        "text": "Medicare Provider Number"
+      },
+      "system": "http://ns.electronichealth.net.au/id/medicare-provider-number",
+      "value": "2449001X"
+    }
+  ],
+  "practitioner": {
+    "reference": "Practitioner/au-core-practitionerrole-practitioner"
+  },
+  "organization": {
+    "reference": "Organization/au-core-practitionerrole-organization"
+  },
+  "code": [
+    {
+      "coding": [
+        {
+          "system": "http://snomed.info/sct",
+          "code": "62247001",
+          "display": "General practitioner"
+        }
+      ],
+      "text": "General Practitioner"
+    }
+  ],
+  "specialty": [
+    {
+      "coding": [
+        {
+          "system": "http://snomed.info/sct",
+          "code": "408443003",
+          "display": "General medical practice"
+        }
+      ],
+      "text": "General practice"
+    }
+  ],
+  "telecom": [
+    {
+      "system": "phone",
+      "value": "0400000001",
+      "use": "work"
+    },
+    {
+      "system": "email",
+      "value": "frog.gp@example.com.au",
+      "use": "work"
+    }
+  ]
+}

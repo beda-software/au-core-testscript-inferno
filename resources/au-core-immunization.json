@@ -1,0 +1,313 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-immunization",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-immunization",
+  "name": "AUCoreImmunization",
+  "title": "AU Core Immunization \u2014 SHALL-level conformance plus vaccineCode slice coverage",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core Immunization (2.0.0) requirements: read, search by patient, the SHALL search-combo patient+status, must-support element presence (including FHIRPath presence checks for the vaccineCode.coding:amtVaccineCode and vaccineCode.coding:airVaccineCode slices), and profile conformance validation. Reuses the shared au-core-patient-conformant fixture for the patient reference. Mirrors the SHALL subset of au-fhir-core-inferno's ImmunizationGroup (immunization_read_test, immunization_patient_search_test, immunization_patient_status_search_test, immunization_must_support_test, immunization_validation_test). Also includes standalone (MAY-level) SearchByDate and SearchByVaccineCode tests since date/status/vaccine-code/patient search were explicitly named in fhirfrog/au-core-compiler#11 \u2014 following the precedent set in #7/#8 of demonstrating an explicitly-called-out MAY/SHOULD-level mechanism alongside the SHALL-only core. The remaining SHOULD/MAY-level combinatorial coverage (patient+date, patient+vaccine-code, vaccine-code multiple-or, date multiple-and, the DVA/IHI/Medicare patient identifier chain searches, and the reference-resolution test) is not replicated here; see fhirfrog/au-core-compiler#6 for the original SHALL-only scope rationale. The amtVaccineCode and airVaccineCode slices are discriminated in the AU Core StructureDefinition by a pattern/$this rule bound to the amt-vaccine-1 and australian-immunisation-register-vaccine-1 ValueSets respectively rather than by a fixed coding.system element; in practice AMT codes are carried on the http://snomed.info/sct system and AIR codes on the https://www.humanservices.gov.au/organisations/health-professionals/enablers/air-vaccine-code-formats system (confirmed against the published au-core-immunization example Immunization-covid-1), so slice presence is asserted via a coding.where(system=...) FHIRPath check against those two systems.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    },
+    {
+      "id": "au-core-immunization-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-immunization-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    },
+    {
+      "name": "immunizationId",
+      "sourceId": "au-core-immunization-conformant",
+      "expression": "Immunization.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Immunization",
+            "params": "/${immunizationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Immunization by id (${immunizationId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Immunization by id (${immunizationId})"
+    },
+    {
+      "name": "SearchByPatient",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Immunization",
+            "params": "?patient=${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Search Immunization where patient = ${patientId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Immunization).note.text.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Immunization).note.text.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search Immunization where patient = ${patientId}"
+    },
+    {
+      "name": "SearchByPatientAndStatus",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Immunization",
+            "params": "?patient=${patientId}&status=completed",
+            "encodeRequestUrl": true,
+            "description": "Search Immunization where patient = ${patientId} and status = completed"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Immunization).status.where($this = 'completed').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Immunization).status.where($this = 'completed').exists()"
+          }
+        }
+      ],
+      "description": "Search Immunization where patient = ${patientId} and status = completed"
+    },
+    {
+      "name": "SearchByDate",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Immunization",
+            "params": "?date=ge2020-01-01",
+            "encodeRequestUrl": true,
+            "description": "Search Immunization where date = ge2020-01-01"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Immunization).note.text.exists($this.contains('Frog'))",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Immunization).note.text.exists($this.contains('Frog'))"
+          }
+        }
+      ],
+      "description": "Search Immunization where date = ge2020-01-01"
+    },
+    {
+      "name": "SearchByVaccineCode",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Immunization",
+            "params": "?vaccine-code=https://www.humanservices.gov.au/organisations/health-professionals/enablers/air-vaccine-code-formats|COMIRN",
+            "encodeRequestUrl": true,
+            "description": "Search Immunization where vaccine-code = https://www.humanservices.gov.au/organisations/health-professionals/enablers/air-vaccine-code-formats|COMIRN"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Immunization).vaccineCode.coding.where(code = 'COMIRN').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Immunization).vaccineCode.coding.where(code = 'COMIRN').exists()"
+          }
+        }
+      ],
+      "description": "Search Immunization where vaccine-code = https://www.humanservices.gov.au/organisations/health-professionals/enablers/air-vaccine-code-formats|COMIRN"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Immunization",
+            "params": "/${immunizationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Immunization by id (${immunizationId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Immunization.status.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Immunization.status.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Immunization.vaccineCode.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Immunization.vaccineCode.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Immunization.vaccineCode.coding.where(system = 'http://snomed.info/sct').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Immunization.vaccineCode.coding.where(system = 'http://snomed.info/sct').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Immunization.vaccineCode.coding.where(system = 'https://www.humanservices.gov.au/organisations/health-professionals/enablers/air-vaccine-code-formats').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Immunization.vaccineCode.coding.where(system = 'https://www.humanservices.gov.au/organisations/health-professionals/enablers/air-vaccine-code-formats').exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Immunization.patient.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Immunization.patient.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Immunization.occurrence.ofType(dateTime).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Immunization.occurrence.ofType(dateTime).exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Immunization.primarySource.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Immunization.primarySource.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Immunization.lotNumber.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Immunization.lotNumber.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Immunization.note.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Immunization.note.exists()"
+          }
+        }
+      ],
+      "description": "Read Immunization by id (${immunizationId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Immunization",
+            "params": "/${immunizationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Immunization by id (${immunizationId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-immunization",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-immunization"
+          }
+        }
+      ],
+      "description": "Read Immunization by id (${immunizationId})"
+    }
+  ]
+}

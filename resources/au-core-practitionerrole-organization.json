@@ -1,0 +1,11 @@
+{
+  "resourceType": "Organization",
+  "id": "au-core-practitionerrole-organization",
+  "identifier": [
+    {
+      "system": "http://ns.electronichealth.net.au/id/hi/hpio/1.0",
+      "value": "8003620000041692"
+    }
+  ],
+  "name": "Frog Test Clinic"
+}

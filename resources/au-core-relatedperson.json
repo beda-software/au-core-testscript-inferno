@@ -1,0 +1,313 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-relatedperson",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-relatedperson",
+  "name": "AUCoreRelatedPerson",
+  "title": "AU Core RelatedPerson — SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the AU Core RelatedPerson (2.0.0) requirements identified in fhirfrog/au-core-compiler#20: read, search by patient (SHALL), search by _id/name/relationship (SHOULD/MAY, included per the issue's explicit call-out of all four params — see fhirfrog/au-core-compiler#17 for the equivalent Practitioner-level precedent of including SHOULD/MAY searches when an issue names them), must-support element presence (patient, relationship, name+use/text/family/given, telecom, address), and profile conformance validation. Mirrors au-fhir-core-inferno's RelatedPersonGroup (related_person_patient_search_test, related_person__id_search_test, related_person_name_search_test, related_person_relationship_search_test, related_person_read_test, related_person_validation_test, related_person_must_support_test); the patient+name and patient+relationship combinator variants and reference-resolution test are not replicated — see fhirfrog/au-core-compiler#6 for the general scope rationale. No obligation-extension or negative-testing complexity is exercised here (unlike fhirfrog/au-core-compiler#21/#22): plain must-support presence checks are sufficient per issue #20's own scoping.",
+  "fixture": [
+    {
+      "id": "au-core-relatedperson-patient",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-relatedperson-patient.json"
+      }
+    },
+    {
+      "id": "au-core-relatedperson-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-relatedperson-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "relatedPersonId",
+      "sourceId": "au-core-relatedperson-conformant",
+      "expression": "RelatedPerson.id"
+    },
+    {
+      "name": "patientId",
+      "sourceId": "au-core-relatedperson-patient",
+      "expression": "Patient.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "RelatedPerson",
+            "params": "/${relatedPersonId}",
+            "encodeRequestUrl": true,
+            "description": "Read RelatedPerson by id (${relatedPersonId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read RelatedPerson by id (${relatedPersonId})"
+    },
+    {
+      "name": "SearchByPatient",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "RelatedPerson",
+            "params": "?patient=Patient/${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Search RelatedPerson where patient = Patient/${patientId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(RelatedPerson).name.family.where($this = 'Banks').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(RelatedPerson).name.family.where($this = 'Banks').exists()"
+          }
+        }
+      ],
+      "description": "Search RelatedPerson where patient = Patient/${patientId}"
+    },
+    {
+      "name": "SearchById",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "RelatedPerson",
+            "params": "?_id=${relatedPersonId}",
+            "encodeRequestUrl": true,
+            "description": "Search RelatedPerson where _id = ${relatedPersonId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(RelatedPerson).name.family.where($this = 'Banks').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(RelatedPerson).name.family.where($this = 'Banks').exists()"
+          }
+        }
+      ],
+      "description": "Search RelatedPerson where _id = ${relatedPersonId}"
+    },
+    {
+      "name": "SearchByName",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "RelatedPerson",
+            "params": "?name=Banks",
+            "encodeRequestUrl": true,
+            "description": "Search RelatedPerson where name = Banks"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(RelatedPerson).name.family.where($this = 'Banks').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(RelatedPerson).name.family.where($this = 'Banks').exists()"
+          }
+        }
+      ],
+      "description": "Search RelatedPerson where name = Banks"
+    },
+    {
+      "name": "SearchByRelationship",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "RelatedPerson",
+            "params": "?relationship=http://terminology.hl7.org/CodeSystem/v3-RoleCode|FTH",
+            "encodeRequestUrl": true,
+            "description": "Search RelatedPerson where relationship = http://terminology.hl7.org/CodeSystem/v3-RoleCode|FTH"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(RelatedPerson).relationship.coding.code.where($this = 'FTH').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(RelatedPerson).relationship.coding.code.where($this = 'FTH').exists()"
+          }
+        }
+      ],
+      "description": "Search RelatedPerson where relationship = http://terminology.hl7.org/CodeSystem/v3-RoleCode|FTH"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "RelatedPerson",
+            "params": "/${relatedPersonId}",
+            "encodeRequestUrl": true,
+            "description": "Read RelatedPerson by id (${relatedPersonId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "RelatedPerson.patient.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: RelatedPerson.patient.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "RelatedPerson.relationship.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: RelatedPerson.relationship.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "RelatedPerson.name.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: RelatedPerson.name.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "RelatedPerson.name.use.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: RelatedPerson.name.use.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "RelatedPerson.name.text.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: RelatedPerson.name.text.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "RelatedPerson.name.family.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: RelatedPerson.name.family.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "RelatedPerson.name.given.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: RelatedPerson.name.given.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "RelatedPerson.telecom.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: RelatedPerson.telecom.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "RelatedPerson.address.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: RelatedPerson.address.exists()"
+          }
+        }
+      ],
+      "description": "Read RelatedPerson by id (${relatedPersonId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "RelatedPerson",
+            "params": "/${relatedPersonId}",
+            "encodeRequestUrl": true,
+            "description": "Read RelatedPerson by id (${relatedPersonId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-relatedperson",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-relatedperson"
+          }
+        }
+      ],
+      "description": "Read RelatedPerson by id (${relatedPersonId})"
+    }
+  ]
+}

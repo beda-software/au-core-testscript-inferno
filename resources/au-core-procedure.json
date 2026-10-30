@@ -1,0 +1,297 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-procedure",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-procedure",
+  "name": "AUCoreProcedure",
+  "title": "AU Core Procedure \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the AU Core Procedure (2.0.0) requirements: read, search by patient (SHALL), search by code/date/status (individually MAY-level in AU Core, but included here because issue #19 explicitly calls for code/date/status/patient search coverage on the generic search mechanism, following the same precedent as fhirfrog/au-core-compiler#17's Practitioner TestScript), must-support element presence, and profile conformance validation. Mirrors the relevant subset of au-fhir-core-inferno's ProcedureGroup (procedure_read_test, procedure_patient_search_test, procedure_code_search_test, procedure_date_search_test, procedure_status_search_test, procedure_must_support_test, procedure_validation_test). The combinatorial SHOULD/MAY search tests (patient+date, patient+status, patient+code+date, multiple-or on code/status, multiple-and on date, the DVA/IHI/Medicare identifier chain searches on patient, and the reference-resolution test) are not replicated here, per the same scope rationale used for Patient/Condition/Organization/Practitioner; see fhirfrog/au-core-compiler#6 and #19.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    },
+    {
+      "id": "au-core-procedure-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-procedure-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    },
+    {
+      "name": "procedureId",
+      "sourceId": "au-core-procedure-conformant",
+      "expression": "Procedure.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Procedure",
+            "params": "/${procedureId}",
+            "encodeRequestUrl": true,
+            "description": "Read Procedure by id (${procedureId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Procedure by id (${procedureId})"
+    },
+    {
+      "name": "SearchByPatient",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Procedure",
+            "params": "?patient=${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Search Procedure where patient = ${patientId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Procedure).code.coding.code.where($this = '80146002').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Procedure).code.coding.code.where($this = '80146002').exists()"
+          }
+        }
+      ],
+      "description": "Search Procedure where patient = ${patientId}"
+    },
+    {
+      "name": "SearchByCode",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Procedure",
+            "params": "?code=http://snomed.info/sct|80146002",
+            "encodeRequestUrl": true,
+            "description": "Search Procedure where code = http://snomed.info/sct|80146002"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Procedure).code.coding.code.where($this = '80146002').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Procedure).code.coding.code.where($this = '80146002').exists()"
+          }
+        }
+      ],
+      "description": "Search Procedure where code = http://snomed.info/sct|80146002"
+    },
+    {
+      "name": "SearchByDate",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Procedure",
+            "params": "?date=2020-06-15",
+            "encodeRequestUrl": true,
+            "description": "Search Procedure where date = 2020-06-15"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Procedure).performed.ofType(dateTime).toString().where($this.contains('2020-06-15')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Procedure).performed.ofType(dateTime).toString().where($this.contains('2020-06-15')).exists()"
+          }
+        }
+      ],
+      "description": "Search Procedure where date = 2020-06-15"
+    },
+    {
+      "name": "SearchByStatus",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Procedure",
+            "params": "?status=completed",
+            "encodeRequestUrl": true,
+            "description": "Search Procedure where status = completed"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Procedure).status.where($this = 'completed').exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Procedure).status.where($this = 'completed').exists()"
+          }
+        }
+      ],
+      "description": "Search Procedure where status = completed"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Procedure",
+            "params": "/${procedureId}",
+            "encodeRequestUrl": true,
+            "description": "Read Procedure by id (${procedureId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Procedure.code.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Procedure.code.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Procedure.encounter.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Procedure.encounter.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Procedure.performed.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Procedure.performed.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Procedure.reasonCode.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Procedure.reasonCode.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Procedure.reasonReference.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Procedure.reasonReference.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Procedure.status.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Procedure.status.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Procedure.subject.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Procedure.subject.exists()"
+          }
+        }
+      ],
+      "description": "Read Procedure by id (${procedureId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Procedure",
+            "params": "/${procedureId}",
+            "encodeRequestUrl": true,
+            "description": "Read Procedure by id (${procedureId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-procedure",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-procedure"
+          }
+        }
+      ],
+      "description": "Read Procedure by id (${procedureId})"
+    }
+  ]
+}

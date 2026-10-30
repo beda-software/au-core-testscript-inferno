@@ -1,0 +1,309 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-location",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-location",
+  "name": "AUCoreLocation",
+  "title": "AU Core Location \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core Location (2.0.0) requirements: read, search by each of the five documented search parameters (address, name, address-city, address-state, address-postalcode), must-support element presence, and profile conformance validation. Location is self-contained \u2014 no Patient reference is required for these search paths. Per fhirfrog/au-core-compiler#12, au-fhir-core-inferno's own LocationGroup only marks the name search as SHALL and treats address/address-city/address-state/address-postalcode as optional (SHOULD) single-param searches, with no dedicated first-class search test beyond that; the AU Core IG demands support for all five as part of the Location search capability, so this TestScript exercises all five explicitly rather than only mirroring Inferno's narrower baseline. As with au-core-patient (fhirfrog/au-core-compiler#6), this does not attempt Inferno's SHOULD/MAY-level combinatorial multi-param search coverage or MustSupport reference resolution (location_reference_resolution_test) \u2014 each search parameter gets one standalone test against the single fixture resource.",
+  "fixture": [
+    {
+      "id": "au-core-location-organization",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-location-organization.json"
+      }
+    },
+    {
+      "id": "au-core-location-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-location-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "locationId",
+      "sourceId": "au-core-location-conformant",
+      "expression": "Location.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Location",
+            "params": "/${locationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Location by id (${locationId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read Location by id (${locationId})"
+    },
+    {
+      "name": "SearchByAddress",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Location",
+            "params": "?address=Frogville",
+            "encodeRequestUrl": true,
+            "description": "Search Location where address = Frogville"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search Location where address = Frogville"
+    },
+    {
+      "name": "SearchByName",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Location",
+            "params": "?name=Frog",
+            "encodeRequestUrl": true,
+            "description": "Search Location where name = Frog"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search Location where name = Frog"
+    },
+    {
+      "name": "SearchByAddressCity",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Location",
+            "params": "?address-city=Frogville",
+            "encodeRequestUrl": true,
+            "description": "Search Location where address-city = Frogville"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search Location where address-city = Frogville"
+    },
+    {
+      "name": "SearchByAddressState",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Location",
+            "params": "?address-state=NSW",
+            "encodeRequestUrl": true,
+            "description": "Search Location where address-state = NSW"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search Location where address-state = NSW"
+    },
+    {
+      "name": "SearchByAddressPostalcode",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "Location",
+            "params": "?address-postalcode=2000",
+            "encodeRequestUrl": true,
+            "description": "Search Location where address-postalcode = 2000"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(Location).name.where($this.contains('Frog')).exists()"
+          }
+        }
+      ],
+      "description": "Search Location where address-postalcode = 2000"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Location",
+            "params": "/${locationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Location by id (${locationId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Location.address.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Location.address.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Location.managingOrganization.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Location.managingOrganization.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Location.name.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Location.name.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Location.physicalType.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Location.physicalType.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Location.type.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Location.type.exists()"
+          }
+        }
+      ],
+      "description": "Read Location by id (${locationId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "Location",
+            "params": "/${locationId}",
+            "encodeRequestUrl": true,
+            "description": "Read Location by id (${locationId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-location",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-location"
+          }
+        }
+      ],
+      "description": "Read Location by id (${locationId})"
+    }
+  ]
+}

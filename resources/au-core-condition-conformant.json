@@ -1,0 +1,66 @@
+{
+  "resourceType": "Condition",
+  "id": "au-core-condition-conformant",
+  "meta": {
+    "profile": [
+      "http://hl7.org.au/fhir/core/StructureDefinition/au-core-condition"
+    ]
+  },
+  "clinicalStatus": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/condition-clinical",
+        "code": "resolved",
+        "display": "Resolved"
+      }
+    ]
+  },
+  "verificationStatus": {
+    "coding": [
+      {
+        "system": "http://terminology.hl7.org/CodeSystem/condition-ver-status",
+        "code": "confirmed",
+        "display": "Confirmed"
+      }
+    ]
+  },
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/condition-category",
+          "code": "problem-list-item",
+          "display": "Problem List Item"
+        }
+      ]
+    }
+  ],
+  "severity": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "24484000",
+        "display": "Severe"
+      }
+    ]
+  },
+  "code": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "68566005",
+        "display": "Urinary tract infection"
+      }
+    ]
+  },
+  "subject": {
+    "reference": "Patient/au-core-patient-conformant"
+  },
+  "onsetDateTime": "2020-05-10",
+  "abatementDateTime": "2020-05-24",
+  "note": [
+    {
+      "text": "Synthetic condition fixture (Frog test data) for fhir-frog AU Core Condition conformance testing."
+    }
+  ]
+}

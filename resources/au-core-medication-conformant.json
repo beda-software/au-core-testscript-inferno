@@ -1,0 +1,19 @@
+{
+  "resourceType": "Medication",
+  "id": "au-core-medication-conformant",
+  "code": {
+    "coding": [
+      {
+        "system": "http://pbs.gov.au/code/item",
+        "code": "2951H",
+        "display": "Bactrim DS"
+      },
+      {
+        "system": "http://snomed.info/sct",
+        "code": "6632011000036102",
+        "display": "Bactrim DS tablet"
+      }
+    ],
+    "text": "Bactrim DS - tablet"
+  }
+}

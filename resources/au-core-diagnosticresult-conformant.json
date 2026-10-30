@@ -1,0 +1,74 @@
+{
+  "resourceType": "Observation",
+  "id": "au-core-diagnosticresult-conformant",
+  "meta": {
+    "profile": [
+      "http://hl7.org.au/fhir/core/StructureDefinition/au-core-diagnosticresult"
+    ]
+  },
+  "status": "final",
+  "category": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/v2-0074",
+          "code": "AU",
+          "display": "Audiology"
+        }
+      ]
+    }
+  ],
+  "code": {
+    "coding": [
+      {
+        "system": "http://loinc.org",
+        "code": "89024-4",
+        "display": "Hearing threshold Ear - left --500 Hz"
+      }
+    ],
+    "text": "Hearing threshold Ear - left --500 Hz"
+  },
+  "subject": {
+    "reference": "Patient/au-core-patient-conformant"
+  },
+  "effectiveDateTime": "2026-01-15T09:30:00+10:00",
+  "performer": [
+    {
+      "display": "Frog Audiology Clinic"
+    }
+  ],
+  "valueQuantity": {
+    "value": 45,
+    "unit": "dB",
+    "system": "http://unitsofmeasure.org",
+    "code": "dB"
+  },
+  "bodySite": {
+    "coding": [
+      {
+        "system": "http://snomed.info/sct",
+        "code": "771404007",
+        "display": "Structure of left ear"
+      }
+    ]
+  },
+  "component": [
+    {
+      "code": {
+        "coding": [
+          {
+            "system": "http://loinc.org",
+            "code": "89025-1",
+            "display": "Hearing threshold Ear - right --500 Hz"
+          }
+        ]
+      },
+      "valueQuantity": {
+        "value": 42,
+        "unit": "dB",
+        "system": "http://unitsofmeasure.org",
+        "code": "dB"
+      }
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "resourceType": "Location",
+  "id": "au-core-encounter-location",
+  "status": "active",
+  "name": "Frog Medical Centre",
+  "type": [
+    {
+      "coding": [
+        {
+          "system": "http://terminology.hl7.org/CodeSystem/v3-RoleCode",
+          "code": "FMC",
+          "display": "Family medicine clinic"
+        }
+      ]
+    }
+  ],
+  "address": {
+    "use": "work",
+    "line": [
+      "1 Frog Lane"
+    ],
+    "city": "Frogville",
+    "state": "NSW",
+    "postalCode": "2000",
+    "country": "AU"
+  }
+}

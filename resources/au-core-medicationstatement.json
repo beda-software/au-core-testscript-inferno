@@ -1,0 +1,329 @@
+{
+  "resourceType": "TestScript",
+  "id": "au-core-medicationstatement",
+  "url": "http://fhirfrog.org/fhir/au-core-tests/TestScript/au-core-medicationstatement",
+  "name": "AUCoreMedicationStatement",
+  "title": "AU Core MedicationStatement \u2014 SHALL-level conformance",
+  "status": "active",
+  "description": "Covers the SHALL-level AU Core MedicationStatement (2.0.0) requirements: read, search by patient (SHALL), plus the single-parameter _id/effective/status searches called for by fhirfrog/au-core-compiler#15, must-support element presence, and profile conformance validation. Mirrors the SHALL subset of au-fhir-core-inferno's MedicationStatementGroup (medication_statement_read_test, medication_statement_patient_search_test, medication_statement__id_search_test, medication_statement_effective_search_test, medication_statement_status_search_test, medication_statement_must_support_test, medication_statement_validation_test) \u2014 the patient+status/patient+effective combinatorial searches and the identifier chain searches (dva/ihi/medicare) are not replicated here, matching the SHALL-only scope rationale from #6. Uses medicationCodeableConcept only (simpler than MedicationRequest's medication[x] case); the medicationReference must-support slice is therefore not exercised by this single-fixture set. Per #15, Inferno itself does not wire an inclusion-validation (_include) test for MedicationStatement, so no _include coverage is authored here either.",
+  "fixture": [
+    {
+      "id": "au-core-patient-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-patient-conformant.json"
+      }
+    },
+    {
+      "id": "au-core-medicationstatement-reason-condition",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-medicationstatement-reason-condition.json"
+      }
+    },
+    {
+      "id": "au-core-medicationstatement-conformant",
+      "autocreate": true,
+      "autodelete": true,
+      "resource": {
+        "reference": "file://au-core-medicationstatement-conformant.json"
+      }
+    }
+  ],
+  "variable": [
+    {
+      "name": "patientId",
+      "sourceId": "au-core-patient-conformant",
+      "expression": "Patient.id"
+    },
+    {
+      "name": "medicationStatementId",
+      "sourceId": "au-core-medicationstatement-conformant",
+      "expression": "MedicationStatement.id"
+    }
+  ],
+  "test": [
+    {
+      "name": "Read",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "MedicationStatement",
+            "params": "/${medicationStatementId}",
+            "encodeRequestUrl": true,
+            "description": "Read MedicationStatement by id (${medicationStatementId})"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        }
+      ],
+      "description": "Read MedicationStatement by id (${medicationStatementId})"
+    },
+    {
+      "name": "SearchByPatient",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationStatement",
+            "params": "?patient=${patientId}",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationStatement where patient = ${patientId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationStatement).medication.ofType(CodeableConcept).text.where($this.contains('Bactrim')).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationStatement).medication.ofType(CodeableConcept).text.where($this.contains('Bactrim')).exists()"
+          }
+        }
+      ],
+      "description": "Search MedicationStatement where patient = ${patientId}"
+    },
+    {
+      "name": "SearchById",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationStatement",
+            "params": "?_id=${medicationStatementId}",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationStatement where _id = ${medicationStatementId}"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationStatement).status = 'active'",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationStatement).status = 'active'"
+          }
+        }
+      ],
+      "description": "Search MedicationStatement where _id = ${medicationStatementId}"
+    },
+    {
+      "name": "SearchByEffective",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationStatement",
+            "params": "?effective=2024-06-01",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationStatement where effective = 2024-06-01"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationStatement).effective = '2024-06-01'",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationStatement).effective = '2024-06-01'"
+          }
+        }
+      ],
+      "description": "Search MedicationStatement where effective = 2024-06-01"
+    },
+    {
+      "name": "SearchByStatus",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "search"
+            },
+            "resource": "MedicationStatement",
+            "params": "?status=active",
+            "encodeRequestUrl": true,
+            "description": "Search MedicationStatement where status = active"
+          }
+        },
+        {
+          "assert": {
+            "response": "okay",
+            "warningOnly": false,
+            "description": "Response status is okay"
+          }
+        },
+        {
+          "assert": {
+            "expression": "Bundle.entry.resource.ofType(MedicationStatement).status = 'active'",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: Bundle.entry.resource.ofType(MedicationStatement).status = 'active'"
+          }
+        }
+      ],
+      "description": "Search MedicationStatement where status = active"
+    },
+    {
+      "name": "MustSupport",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "MedicationStatement",
+            "params": "/${medicationStatementId}",
+            "encodeRequestUrl": true,
+            "description": "Read MedicationStatement by id (${medicationStatementId})"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.status.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.status.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.medication.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.medication.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.medication.ofType(CodeableConcept).exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.medication.ofType(CodeableConcept).exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.subject.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.subject.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.effective.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.effective.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.dateAsserted.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.dateAsserted.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.dosage.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.dosage.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.dosage.text.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.dosage.text.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.reasonCode.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.reasonCode.exists()"
+          }
+        },
+        {
+          "assert": {
+            "expression": "MedicationStatement.reasonReference.exists()",
+            "operator": "eval",
+            "warningOnly": false,
+            "description": "Check: MedicationStatement.reasonReference.exists()"
+          }
+        }
+      ],
+      "description": "Read MedicationStatement by id (${medicationStatementId})"
+    },
+    {
+      "name": "ProfileValidation",
+      "action": [
+        {
+          "operation": {
+            "type": {
+              "system": "http://terminology.hl7.org/CodeSystem/testscript-operation-codes",
+              "code": "read"
+            },
+            "resource": "MedicationStatement",
+            "params": "/${medicationStatementId}",
+            "encodeRequestUrl": true,
+            "description": "Read MedicationStatement by id (${medicationStatementId})"
+          }
+        },
+        {
+          "assert": {
+            "validateProfileId": "http://hl7.org.au/fhir/core/StructureDefinition/au-core-medicationstatement",
+            "warningOnly": false,
+            "description": "Validate the response against profile http://hl7.org.au/fhir/core/StructureDefinition/au-core-medicationstatement"
+          }
+        }
+      ],
+      "description": "Read MedicationStatement by id (${medicationStatementId})"
+    }
+  ]
+}
