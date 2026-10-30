@@ -16,7 +16,8 @@ Gem::Specification.new do |spec|
   spec.metadata['inferno_test_kit'] = 'true'
   # spec.metadata['homepage_uri'] = spec.homepage
   # spec.metadata['source_code_uri'] = 'TODO'
-  spec.files         = `[ -d .git ] && git ls-files -z lib config/presets execution_scripts LICENSE`.split("\x0")
+  spec.files         = `[ -d .git ] && git ls-files -z lib config/presets execution_scripts resources LICENSE`
+    .split("\x0")
 
   spec.require_paths = ['lib']
 end

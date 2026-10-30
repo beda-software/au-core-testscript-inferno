@@ -1,1 +1,1 @@
-require_relative 'inferno_template/example_suite'
+require_relative 'inferno_template/test_script_suite'

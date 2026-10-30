@@ -1,0 +1,19 @@
+{
+  "title": "Local Aidbox (Inferno in Docker)",
+  "id": "local_aidbox_docker",
+  "test_suite_id": "inferno_template",
+  "inputs": [
+    {
+      "name": "url",
+      "type": "text",
+      "title": "FHIR Server Base Url",
+      "value": "http://host.docker.internal:8080/fhir"
+    },
+    {
+      "name": "authorization",
+      "type": "text",
+      "title": "Authorization header",
+      "value": "Basic cm9vdDpzZWNyZXQ="
+    }
+  ]
+}
